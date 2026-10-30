@@ -1,0 +1,663 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cuestionario Interactivo - R.M. 001/2026 Bolivia</title>
+    <style>
+        /* ==================== VARIABLES Y RESETS ==================== */
+        :root {
+            --primary: #1e40af;       /* Azul Royal */
+            --primary-dark: #1e3a8a;
+            --secondary: #059669;     /* Verde Esmeralda */
+            --accent: #f59e0b;        /* Ámbar/Acento */
+            --accent-hover: #d97706;
+            --bg-dark: #0f172a;       /* Slate oscuro */
+            --card-bg: #ffffff;
+            --text-dark: #1e293b;
+            --text-muted: #64748b;
+            --success: #10b981;
+            --success-light: #d1fae5;
+            --error: #ef4444;
+            --error-light: #fee2e2;
+            --radius-lg: 20px;
+            --radius-md: 12px;
+            --shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.1);
+            --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', system-ui, -apple-system, Roboto, sans-serif;
+        }
+
+        body {
+            background: linear-gradient(135deg, #0f172a 0%, #1e293b 50%, #1e3a8a 100%);
+            color: var(--text-dark);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+
+        /* ==================== CONTENEDOR PRINCIPAL ==================== */
+        .quiz-container {
+            width: 100%;
+            max-width: 800px;
+            background: var(--card-bg);
+            border-radius: var(--radius-lg);
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+            overflow: hidden;
+            position: relative;
+            transition: var(--transition);
+        }
+
+        /* Header / Encabezado */
+        .header {
+            background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
+            color: #ffffff;
+            padding: 30px 25px 20px;
+            text-align: center;
+            position: relative;
+        }
+
+        .header-badge {
+            display: inline-block;
+            background: rgba(255, 255, 255, 0.2);
+            backdrop-filter: blur(5px);
+            padding: 4px 14px;
+            border-radius: 20px;
+            font-size: 0.85rem;
+            font-weight: 600;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+            margin-bottom: 10px;
+        }
+
+        .header h1 {
+            font-size: 1.8rem;
+            font-weight: 800;
+            margin-bottom: 8px;
+            line-height: 1.2;
+        }
+
+        .header p {
+            font-size: 0.95rem;
+            opacity: 0.9;
+        }
+
+        /* Barra de Progreso y Marcador */
+        .stats-bar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 15px 25px;
+            background: #f8fafc;
+            border-bottom: 1px solid #e2e8f0;
+            font-weight: 600;
+            font-size: 0.9rem;
+            color: var(--text-muted);
+        }
+
+        .score-box {
+            background: #e0e7ff;
+            color: var(--primary);
+            padding: 6px 14px;
+            border-radius: 20px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .progress-container {
+            width: 100%;
+            height: 8px;
+            background: #e2e8f0;
+        }
+
+        .progress-bar {
+            height: 100%;
+            width: 0%;
+            background: linear-gradient(90deg, var(--secondary) 0%, #34d399 100%);
+            transition: width 0.4s ease;
+        }
+
+        /* Contenido de la pregunta */
+        .card-body {
+            padding: 30px 25px;
+        }
+
+        .question-title {
+            font-size: 1.25rem;
+            font-weight: 700;
+            color: var(--text-dark);
+            margin-bottom: 25px;
+            line-height: 1.4;
+        }
+
+        /* Opciones de respuesta */
+        .options-list {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            list-style: none;
+        }
+
+        .option-btn {
+            width: 100%;
+            padding: 16px 20px;
+            background: #f8fafc;
+            border: 2px solid #e2e8f0;
+            border-radius: var(--radius-md);
+            text-align: left;
+            font-size: 1rem;
+            font-weight: 500;
+            color: var(--text-dark);
+            cursor: pointer;
+            transition: var(--transition);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            outline: none;
+        }
+
+        .option-btn:hover:not(:disabled) {
+            border-color: var(--primary);
+            background: #eff6ff;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(30, 64, 175, 0.1);
+        }
+
+        .option-btn:disabled {
+            cursor: not-allowed;
+            opacity: 0.9;
+        }
+
+        /* Estados de respuesta */
+        .option-btn.correct {
+            background-color: var(--success-light) !important;
+            border-color: var(--success) !important;
+            color: #065f46 !important;
+            font-weight: 700;
+        }
+
+        .option-btn.incorrect {
+            background-color: var(--error-light) !important;
+            border-color: var(--error) !important;
+            color: #991b1b !important;
+        }
+
+        /* Retroalimentación */
+        .feedback-box {
+            margin-top: 20px;
+            padding: 16px 20px;
+            border-radius: var(--radius-md);
+            display: none;
+            animation: fadeIn 0.4s ease-in-out;
+        }
+
+        .feedback-box.show {
+            display: block;
+        }
+
+        .feedback-box.correct {
+            background-color: var(--success-light);
+            border-left: 5px solid var(--success);
+            color: #065f46;
+        }
+
+        .feedback-box.incorrect {
+            background-color: var(--error-light);
+            border-left: 5px solid var(--error);
+            color: #991b1b;
+        }
+
+        .feedback-header {
+            font-weight: 700;
+            font-size: 1.05rem;
+            margin-bottom: 6px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .feedback-text {
+            font-size: 0.95rem;
+            line-height: 1.5;
+        }
+
+        /* Botón Siguiente */
+        .action-container {
+            margin-top: 25px;
+            display: flex;
+            justify-content: flex-end;
+        }
+
+        .next-btn {
+            background: linear-gradient(135deg, var(--accent) 0%, var(--accent-hover) 100%);
+            color: #ffffff;
+            border: none;
+            padding: 14px 28px;
+            font-size: 1rem;
+            font-weight: 700;
+            border-radius: var(--radius-md);
+            cursor: pointer;
+            transition: var(--transition);
+            box-shadow: 0 4px 14px rgba(245, 158, 11, 0.4);
+            display: none;
+        }
+
+        .next-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(245, 158, 11, 0.6);
+        }
+
+        .next-btn.show {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        /* ==================== PANTALLA FINAL / RESULTADOS ==================== */
+        .results-screen {
+            display: none;
+            text-align: center;
+            padding: 40px 25px;
+            animation: fadeIn 0.5s ease;
+        }
+
+        .results-icon {
+            font-size: 4rem;
+            margin-bottom: 15px;
+            line-height: 1;
+        }
+
+        .results-title {
+            font-size: 2rem;
+            font-weight: 800;
+            color: var(--text-dark);
+            margin-bottom: 10px;
+        }
+
+        .results-subtitle {
+            font-size: 1.1rem;
+            color: var(--text-muted);
+            margin-bottom: 30px;
+        }
+
+        .score-circle {
+            width: 140px;
+            height: 140px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
+            color: #ffffff;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            margin: 0 auto 30px;
+            box-shadow: 0 10px 25px rgba(30, 64, 175, 0.3);
+        }
+
+        .score-circle .number {
+            font-size: 2.8rem;
+            font-weight: 800;
+            line-height: 1;
+        }
+
+        .score-circle .label {
+            font-size: 0.85rem;
+            opacity: 0.9;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-top: 4px;
+        }
+
+        .restart-btn {
+            background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
+            color: #ffffff;
+            border: none;
+            padding: 16px 36px;
+            font-size: 1.1rem;
+            font-weight: 700;
+            border-radius: var(--radius-md);
+            cursor: pointer;
+            transition: var(--transition);
+            box-shadow: 0 4px 15px rgba(30, 64, 175, 0.4);
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .restart-btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 25px rgba(30, 64, 175, 0.5);
+        }
+
+        /* Animations */
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* Responsive Design */
+        @media (max-width: 640px) {
+            .header h1 { font-size: 1.4rem; }
+            .question-title { font-size: 1.1rem; }
+            .option-btn { font-size: 0.95rem; padding: 14px 16px; }
+            .card-body { padding: 20px 18px; }
+            .stats-bar { padding: 12px 18px; }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="quiz-container">
+        <!-- Encabezado de la aplicación -->
+        <div class="header">
+            <span class="header-badge">Normativa Educativa Bolivia</span>
+            <h1>R.M. 001/2026</h1>
+            <p>Normas Generales para la Gestión Educativa</p>
+        </div>
+
+        <!-- Barra de estado y progreso -->
+        <div class="progress-container">
+            <div class="progress-bar" id="progress-bar"></div>
+        </div>
+
+        <div class="stats-bar" id="stats-bar">
+            <span id="question-count">Pregunta 1 de 8</span>
+            <div class="score-box">
+                <span>Puntaje:</span>
+                <strong id="score">0</strong>
+            </div>
+        </div>
+
+        <!-- Cuerpo del Cuestionario -->
+        <div class="card-body" id="quiz-body">
+            <div id="question-container">
+                <h2 class="question-title" id="question-text">Cargando pregunta...</h2>
+                <div class="options-list" id="options-container">
+                    <!-- Las opciones se cargan dinámicamente -->
+                </div>
+            </div>
+
+            <!-- Caja de retroalimentación -->
+            <div class="feedback-box" id="feedback-box">
+                <div class="feedback-header" id="feedback-title"></div>
+                <div class="feedback-text" id="feedback-text"></div>
+            </div>
+
+            <!-- Botón de siguiente -->
+            <div class="action-container">
+                <button class="next-btn" id="next-btn">
+                    Siguiente Pregunta
+                    <svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"/>
+                    </svg>
+                </button>
+            </div>
+        </div>
+
+        <!-- Pantalla Final / Resultados -->
+        <div class="results-screen" id="results-screen">
+            <div class="results-icon" id="results-icon">🏆</div>
+            <h2 class="results-title" id="results-title">¡Felicitaciones!</h2>
+            <p class="results-subtitle" id="results-subtitle">Has completado la evaluación de la R.M. 001/2026</p>
+            
+            <div class="score-circle">
+                <span class="number" id="final-score">0/8</span>
+                <span class="label">Aciertos</span>
+            </div>
+
+            <p id="results-message" style="margin-bottom: 30px; font-size: 1.05rem; line-height: 1.6; color: var(--text-dark); max-width: 600px; margin-left: auto; margin-right: auto;"></p>
+
+            <button class="restart-btn" id="restart-btn">
+                <svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/>
+                </svg>
+                Reintentar Cuestionario
+            </button>
+        </div>
+    </div>
+
+    <script>
+        // Banco de preguntas centrado en la R.M. 001/2026 y Normativas de Gestión Educativa en Bolivia
+        const quizData = [
+            {
+                question: "1. Respecto a la inscripción de estudiantes antiguos en Unidades Educativas públicas, privadas y de convenio, la R.M. 001/2026 establece que:",
+                options: [
+                    "Es obligatoria la presencia de los padres para la reincorporación.",
+                    "Es automática para el año escolar subsiguiente sin requerir presencia física.",
+                    "Requiere un pago previo de matrícula para confirmar el cupo.",
+                    "Debe ratificarse mediante un examen de ingreso anual."
+                ],
+                correct: 1,
+                explanation: "Fundamento: Las inscripciones para estudiantes antiguos son automáticas. Queda totalmente prohibido cualquier cobro de reserva de cupo o exámenes de ingreso."
+            },
+            {
+                question: "2. ¿Está permitido exigir listas de útiles escolares con marcas específicas o materiales de limpieza en las Unidades Educativas?",
+                options: [
+                    "Sí, siempre que sea acordado por la Junta Escolar de Padres de Familia.",
+                    "Sí, pero únicamente en Unidades Educativas Privadas.",
+                    "No, está estrictamente prohibido exigir marcas exclusivas y artículos de limpieza/oficina a los estudiantes.",
+                    "Solo se permite en el área rural."
+                ],
+                correct: 2,
+                explanation: "Fundamento: La norma prohíbe la exigencia de listas del material de oficina o limpieza para la UE, así como la imposición de marcas comerciales específicas de útiles."
+            },
+            {
+                question: "3. Con relación a los uniformes escolares en Unidades Educativas Públicas y de Convenio:",
+                options: [
+                    "El uso de uniforme es obligatorio desde el primer día de clases.",
+                    "El uso de uniforme no es obligatorio y su falta no impide el ingreso a clases.",
+                    "Deben comprarse exclusivamente del proveedor designado por la Dirección.",
+                    "Es exigible únicamente en el nivel de Educación Secundaria."
+                ],
+                correct: 1,
+                explanation: "Fundamento: El uso de uniforme no es obligatorio. La exigencia de prendas exclusivas o la limitación del acceso por esta causa está prohibida."
+            },
+            {
+                question: "4. En el Subsistema de Educación Regular, ¿cuántos días hábiles de trabajo pedagógico deben cumplirse durante la gestión escolar?",
+                options: [
+                    "180 días hábiles.",
+                    "200 días hábiles organizados en trimestres.",
+                    "220 días hábiles organizados en bimestres.",
+                    "160 días hábiles."
+                ],
+                correct: 1,
+                explanation: "Fundamento: El calendario escolar en Bolivia establece estrictamente el cumplimiento de 200 días hábiles de trabajo planificado en el año académico."
+            },
+            {
+                question: "5. ¿Cuál es la disposición sobre cobros de cuotas extraordinarias o de reserva en Unidades Educativas Privadas?",
+                options: [
+                    "Se permite el cobro de hasta 12 pensiones anuales.",
+                    "Está prohibido el cobro de matrículas adicionales o reservas que excedan las 10 pensiones autorizadas.",
+                    "Se pueden cobrar cuotas libres según contrato firmado.",
+                    "Se permite cobrar matrícula en el nivel inicial únicamente."
+                ],
+                correct: 1,
+                explanation: "Fundamento: El pago de pensiones en U.E. Privadas comprende exactamente 10 cuotas mensuales en el año escolar, quedando prohibido el cobro de reserva de plaza o matricula independiente."
+            },
+            {
+                question: "6. ¿Está permitido el uso de dispositivos móviles (celulares/tablets) durante los periodos de clase?",
+                options: [
+                    "Está totalmente prohibido en todo momento dentro del establecimiento.",
+                    "Su uso está restringido, salvo cuando responda a una planificación pedagógica justificada por el docente.",
+                    "Se permite libremente sin restricción alguna.",
+                    "Solo los docentes pueden autorizar su uso para juegos de recreo."
+                ],
+                correct: 1,
+                explanation: "Fundamento: El uso de dispositivos móviles por parte de estudiantes en aula se permite exclusivamente con fines pedagógicos orientados y planificados por el maestro."
+            },
+            {
+                question: "7. ¿Qué sanción o medida se aplica ante casos de acoso escolar (bullying) o violencia en las Unidades Educativas según la norma vigente?",
+                options: [
+                    "Expulsión inmediata y definitiva sin debido proceso.",
+                    "Sanción pecuniaria directa a los padres del estudiante agresor.",
+                    "Aplicación de protocolos de prevención, atención, protección y remisión según la gravedad del caso.",
+                    "Suspensión indefinida de clases para todo el curso."
+                ],
+                correct: 2,
+                explanation: "Fundamento: Se prioriza la activación de protocolos de convivencia pacífica y armónica, la prevención y la remisión oportuna ante las autoridades competentes salvaguardando derechos."
+            },
+            {
+                question: "8. Respecto a las evaluaciones y el apoyo pedagógico para estudiantes con dificultades de aprendizaje:",
+                options: [
+                    "No se contemplan adaptaciones de ningún tipo.",
+                    "Es obligatorio brindar apoyo complementario y adaptaciones curriculares oportunas antes de finalizar cada periodo.",
+                    "Solo aplica si el estudiante contrata un tutor externo.",
+                    "Los reprobados deben repetir el año automáticamente sin opción de recuperación."
+                ],
+                correct: 1,
+                explanation: "Fundamento: Los docentes deben aplicar una evaluación cuali-cuantitativa formativa, ofreciendo reforzamiento permanente y adaptaciones curriculares según la norma de inclusión."
+            }
+        ];
+
+        // Estado del Juego
+        let currentQuestion = 0;
+        let score = 0;
+        let selectedOption = null;
+
+        // Elementos DOM
+        const questionText = document.getElementById('question-text');
+        const optionsContainer = document.getElementById('options-container');
+        const feedbackBox = document.getElementById('feedback-box');
+        const feedbackTitle = document.getElementById('feedback-title');
+        const feedbackText = document.getElementById('feedback-text');
+        const nextBtn = document.getElementById('next-btn');
+        const progressBar = document.getElementById('progress-bar');
+        const questionCount = document.getElementById('question-count');
+        const scoreDisplay = document.getElementById('score');
+        
+        const quizBody = document.getElementById('quiz-body');
+        const statsBar = document.getElementById('stats-bar');
+        const resultsScreen = document.getElementById('results-screen');
+        const resultsIcon = document.getElementById('results-icon');
+        const resultsTitle = document.getElementById('results-title');
+        const resultsSubtitle = document.getElementById('results-subtitle');
+        const finalScore = document.getElementById('final-score');
+        const resultsMessage = document.getElementById('results-message');
+        const restartBtn = document.getElementById('restart-btn');
+
+        // Cargar Pregunta Inicial
+        function loadQuestion() {
+            selectedOption = null;
+            feedbackBox.className = 'feedback-box';
+            feedbackBox.classList.remove('show');
+            nextBtn.classList.remove('show');
+
+            const current = quizData[currentQuestion];
+            
+            // Actualizar textos y contador
+            questionText.textContent = current.question;
+            questionCount.textContent = `Pregunta ${currentQuestion + 1} de ${quizData.length}`;
+            scoreDisplay.textContent = score;
+
+            // Actualizar Barra de Progreso
+            const progress = ((currentQuestion) / quizData.length) * 100;
+            progressBar.style.width = `${progress}%`;
+
+            // Cargar opciones
+            optionsContainer.innerHTML = '';
+            current.options.forEach((option, index) => {
+                const button = document.createElement('button');
+                button.className = 'option-btn';
+                button.innerHTML = `<span>${option}</span>`;
+                button.addEventListener('click', () => selectOption(index));
+                optionsContainer.appendChild(button);
+            });
+        }
+
+        // Seleccionar una respuesta
+        function selectOption(index) {
+            if (selectedOption !== null) return; // Evitar múltiples selecciones
+            selectedOption = index;
+
+            const current = quizData[currentQuestion];
+            const buttons = optionsContainer.querySelectorAll('.option-btn');
+
+            // Deshabilitar todos los botones
+            buttons.forEach(btn => btn.disabled = true);
+
+            // Validar respuesta
+            if (index === current.correct) {
+                buttons[index].classList.add('correct');
+                score++;
+                scoreDisplay.textContent = score;
+                showFeedback(true, current.explanation);
+            } else {
+                buttons[index].classList.add('incorrect');
+                buttons[current.correct].classList.add('correct'); // Mostrar la correcta
+                showFeedback(false, current.explanation);
+            }
+
+            nextBtn.classList.add('show');
+        }
+
+        // Mostrar Retroalimentación
+        function showFeedback(isCorrect, explanation) {
+            feedbackBox.className = `feedback-box show ${isCorrect ? 'correct' : 'incorrect'}`;
+            feedbackTitle.innerHTML = isCorrect ? 
+                `<span>¡Correcto!</span>` : 
+                `<span>Incorrecto</span>`;
+            feedbackText.textContent = explanation;
+        }
+
+        // Avanzar a la siguiente pregunta o mostrar resultados
+        nextBtn.addEventListener('click', () => {
+            currentQuestion++;
+            if (currentQuestion < quizData.length) {
+                loadQuestion();
+            } else {
+                showResults();
+            }
+        });
+
+        // Mostrar Pantalla de Resultados
+        function showResults() {
+            progressBar.style.width = '100%';
+            quizBody.style.display = 'none';
+            statsBar.style.display = 'none';
+            resultsScreen.style.display = 'block';
+
+            finalScore.textContent = `${score}/${quizData.length}`;
+
+            const percentage = (score / quizData.length) * 100;
+
+            if (percentage === 100) {
+                resultsIcon.textContent = '🏅';
+                resultsTitle.textContent = '¡Excelente Dominio!';
+                resultsSubtitle.textContent = 'Conocimiento perfecto de la R.M. 001/2026';
+                resultsMessage.textContent = '¡Felicitaciones! Has respondido correctamente todas las preguntas. Demuestras un manejo impecable de la normativa pedagógica y administrativa para la gestión educativa.';
+            } else if (percentage >= 70) {
+                resultsIcon.textContent = '🎉';
+                resultsTitle.textContent = '¡Buen Trabajo!';
+                resultsSubtitle.textContent = 'Aprobaste el cuestionario satisfactoriamente';
+                resultsMessage.textContent = 'Tienes un conocimiento muy sólido de las disposiciones generales de la gestión educativa. Sigue repasando los detalles específicos para perfeccionar tu desempeño.';
+            } else {
+                resultsIcon.textContent = '📚';
+                resultsTitle.textContent = 'Requiere Repaso';
+                resultsSubtitle.textContent = 'Te sugerimos revisar nuevamente la norma';
+                resultsMessage.textContent = 'Has completado el cuestionario, pero es recomendable dar una lectura atenta a la R.M. 001/2026 para afianzar los artículos sobre inscripciones, prohibiciones y evaluación.';
+            }
+        }
+
+        // Reiniciar Cuestionario
+        restartBtn.addEventListener('click', () => {
+            currentQuestion = 0;
+            score = 0;
+            resultsScreen.style.display = 'none';
+            quizBody.style.display = 'block';
+            statsBar.style.display = 'flex';
+            loadQuestion();
+        });
+
+        // Inicializar
+        loadQuestion();
+    </script>
+</body>
+</html>
